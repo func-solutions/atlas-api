@@ -1,10 +1,10 @@
 package me.func.atlas
 
 import me.func.atlas.util.fileLastName
+import me.func.atlas.util.log
 import me.func.atlas.util.warn
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.io.InputStreamReader
 import java.net.URL
@@ -16,6 +16,8 @@ import java.util.concurrent.CompletableFuture
 const val LOCAL_DIR_NAME = "atlas"
 
 object Atlas {
+
+    val configs = hashMapOf<String, LoadedConfig>() // file name to config
 
     @JvmStatic
     @JvmOverloads
@@ -51,11 +53,39 @@ object Atlas {
 
             config.setDefaults(defaultConfig)
 
-            return@supplyAsync LoadedConfig(file.nameWithoutExtension, config)
+            val loaded = LoadedConfig(file.nameWithoutExtension, fileUrl, config)
+
+            configs[file.nameWithoutExtension] = loaded
+
+            return@supplyAsync loaded
         }
     }
 
     @JvmStatic
     fun config(fileUrl: Collection<String>) = fileUrl.map { config(it) }
+
+    @JvmOverloads
+    @JvmStatic
+    fun update(onEnd: Runnable = Runnable { }) {
+        CompletableFuture.allOf(*config(configs.values.map { it.url }.toList()).toTypedArray())
+            .thenAccept { onEnd.run() }
+    }
+
+    @JvmStatic
+    fun find(key: String): FileConfiguration {
+
+        val value = configs[key]
+
+        if (value != null) return value.configuration
+
+        warn("Error! Not key matching, all keys:\n")
+
+        configs.keys.forEach { log(" + $it") }
+
+        throw RuntimeException("Config not found! $key")
+    }
+
+    @JvmStatic
+    fun section(key: String, path: String) = find(key).getConfigurationSection(path).getKeys(false)
 
 }

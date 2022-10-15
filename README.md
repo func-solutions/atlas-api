@@ -18,15 +18,14 @@ repositories {
 }
 
 dependencies {
-    implementation 'me.func:atlas-api:1.0.6' // сама библиотека
+    implementation 'me.func:atlas-api:1.0.9' // сама библиотека
 }
 ```
 
 ## Использование atlas-api
 
-Единственное скачивание
 ```kotlin
-Atlas.config(
+Atlas.config( // скачиваем web-config
     "https://storage.c7x.dev/func/tycoon/config/ore.yml",
 ).thenAccept { file ->
     println("Loaded! " + file.fileName)
@@ -35,7 +34,8 @@ Atlas.config(
 }
 ```
 
-Множественное скачивание
+ИЛИ
+
 ```kotlin
 Atlas.config(
     listOf(
@@ -52,3 +52,14 @@ Atlas.config(
 }
 ```
 
+```kotlin
+Atlas.find("ore") // получение конфигурации
+
+Atlas.section("ore", "data") // получение секции по имени data и названию конфигурации ore
+
+Atlas.update() // обновляет все загруженные конфиги
+
+Atlas.update {
+    log("Конфигурация обновилась!")
+}
+```
