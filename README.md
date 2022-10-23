@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'me.func:atlas-api:1.0.9' // сама библиотека
+    implementation 'me.func:atlas-api:1.0.10' // сама библиотека
 }
 ```
 

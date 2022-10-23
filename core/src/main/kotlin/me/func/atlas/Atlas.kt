@@ -17,11 +17,11 @@ const val LOCAL_DIR_NAME = "atlas"
 
 object Atlas {
 
-    val configs = hashMapOf<String, LoadedConfig>() // file name to config
+    private val configs = hashMapOf<String, LoadedConfig>() // file name to config
 
     @JvmStatic
     @JvmOverloads
-    fun download(fileUrl: String, saveDir: String = LOCAL_DIR_NAME): File? {
+    fun download(fileUrl: String, saveDir: String = LOCAL_DIR_NAME, timeout: Int = 3_000, cache: Boolean = true): File? {
         return try {
             val dir = Paths.get(saveDir)
             if (Files.notExists(dir))
@@ -30,13 +30,19 @@ object Atlas {
             val website = URL(fileUrl)
             val file = File(saveDir + "/" + fileUrl.fileLastName())
             file.createNewFile()
-            website.openStream().use { `in` ->
+
+            website.openConnection().apply {
+                connectTimeout = 1_500
+                readTimeout = timeout
+                useCaches = cache
+            }.getInputStream().use {
                 Files.copy(
-                    `in`,
+                    it,
                     file.toPath(),
                     StandardCopyOption.REPLACE_EXISTING
                 )
             }
+
             file
         } catch (exception: Exception) {
             warn(exception.message ?: "Download failure! File: $fileUrl, directory: $saveDir")
