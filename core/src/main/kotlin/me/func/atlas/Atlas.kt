@@ -22,14 +22,16 @@ object Atlas {
     @JvmStatic
     @JvmOverloads
     fun download(fileUrl: String, saveDir: String = LOCAL_DIR_NAME, timeout: Int = 3_000, cache: Boolean = true): File? {
-        return try {
-            val dir = Paths.get(saveDir)
-            if (Files.notExists(dir))
-                Files.createDirectory(dir)
 
-            val website = URL(fileUrl)
-            val file = File(saveDir + "/" + fileUrl.fileLastName())
-            file.createNewFile()
+        val dir = Paths.get(saveDir)
+        if (Files.notExists(dir))
+            Files.createDirectory(dir)
+
+        val website = URL(fileUrl)
+        val file = File(saveDir + "/" + fileUrl.fileLastName())
+        file.createNewFile()
+
+        return try {
 
             website.openConnection().apply {
                 connectTimeout = 1_500
@@ -47,6 +49,8 @@ object Atlas {
         } catch (exception: Exception) {
             warn(exception.message ?: "Download failure! File: $fileUrl, directory: $saveDir")
             null
+        } finally {
+
         }
     }
 
@@ -93,5 +97,10 @@ object Atlas {
 
     @JvmStatic
     fun section(key: String, path: String) = find(key).getConfigurationSection(path).getKeys(false)
+
+    @JvmStatic
+    fun remove(key: String) {
+        configs.remove(key)
+    }
 
 }
